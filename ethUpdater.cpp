@@ -54,6 +54,9 @@ int main()
 	getSolc(solcVersion);
 	delOldSolc();
 	moveSolc();
+	system("clear");
+	cout << "Remember to add the installation path of Ethereum to your PATH variables in .bashrc" << endl;
+	cout << "Please ignore this message if you are upgrading Ethereum" << endl;
 }
 
 string getSolcVer()
