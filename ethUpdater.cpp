@@ -3,8 +3,11 @@
 #include <cstring>
 #include <stdio.h>
 #include <string>
+#include <limits.h>
+#include <unistd.h>
 #include <sstream>
 using namespace std;
+
 string getEthVer(); //Get the latest version of Ethereum
 void getEthSrc(string version); //Get the latest version of Ethereum source code.
 void clearOldEth(); //Clear the old Ethereum version
@@ -21,9 +24,15 @@ string getSolcVer(); //Get the latest version of Solidity
 void getSolc(string version); //Download the Solidity executable
 void delOldSolc(); //Remove the old Solidity
 void moveSolc(); //Replace the updated Solidity
+string getExePath();
+string getExeLocation();
 
-int main()
+string programName = "";
+
+int main(int argc, char **argv)
 {
+	string progNameLocal(argv[0]);
+	programName = progNameLocal;
 	string ethVersion = getEthVer();
 	if (ethVersion.empty())
 	{
@@ -109,22 +118,29 @@ string getSolcVer()
 
 void getSolc(string version)
 {
-	string wgetCmd = "wget https://github.com/ethereum/solidity/releases/download/v" + version + "/solc-static-linux";
+	string outputDir = getExeLocation();
+	string wgetCmd = "wget -P " + outputDir + " https://github.com/ethereum/solidity/releases/download/v" + version + "/solc-static-linux";
+	//cout << "getSolc " << wgetCmd << endl;
 	system(wgetCmd.c_str());
 }
 
 void delOldSolc()
 {
-	string rmCmd = "rm -rf ./solc";
+	string outputDir = getExeLocation();
+	string rmCmd = "rm -rf " + outputDir + "solc";
+	//cout << "delOldSolc " << rmCmd << endl;
 	system(rmCmd.c_str());
 }
 
 void moveSolc()
 {
-	string mvCmd = "mv solc-static-linux solc";
+	string outputDir = getExeLocation();
+	string mvCmd = "mv " + outputDir + "solc-static-linux " + outputDir + "solc";
+	//cout << "moveSolc " << mvCmd << endl;
 	system(mvCmd.c_str());
-	string chCmd = "chmod 775 ./solc";
+	string chCmd = "chmod 775 " + outputDir + "solc";
 	system(chCmd.c_str());
+	//cout << "moveSolc " << chCmd << endl;
 }
 
 string getEpiVer()
@@ -155,40 +171,52 @@ string getEpiVer()
 
 void getEpiSrc(string version)
 {
+	string outputDir = getExeLocation();
 	string fileName = "epirus-cli-shadow-" + version + ".tar";
-	string wgetCmd = "wget https://github.com/epirus-io/epirus-cli/releases/download/v" + version + "/" + fileName;
+	string wgetCmd = "wget -P " + outputDir + " https://github.com/epirus-io/epirus-cli/releases/download/v" + version + "/" + fileName;
 	system(wgetCmd.c_str());
+	//cout << "getEpiSrc " << wgetCmd << endl;
 }
 
 void crEpiTmp(string version)
 {
+	string outputDir = getExeLocation();
 	string fileName = "epirus-cli-shadow-" + version + ".tar";
-	string unZipCmd = "tar -xvf ./" + fileName;
+	string unZipCmd = "tar -xvf " + outputDir + fileName + " -C " + outputDir ;
 	system(unZipCmd.c_str());
+	//cout << "crEpiTmp " << unZipCmd << endl;
 }
 
 void moveEpi(string version)
 {
+	string outputDir = getExeLocation();
 	string fileName = "epirus-cli-shadow-" + version;
-	string clearEpiCmd = "rm -rf ./epirus-cli";
-	string rmSymbLink = "rm -rf ./epirus";
+	string clearEpiCmd = "rm -rf " + outputDir + "epirus-cli";
+	string rmSymbLink = "rm -rf " + outputDir + "epirus";
 	system(clearEpiCmd.c_str());
 	system(rmSymbLink.c_str());
-	string moveCmd = "mv " + fileName + " epirus-cli";
+	//cout << "moveEpi " << clearEpiCmd << endl;
+	//cout << "moveEpi " << rmSymbLink << endl;
+	string moveCmd = "mv " + outputDir + fileName + " " + outputDir + "epirus-cli";
 	system(moveCmd.c_str());
+	//cout << "moveEpi " << moveCmd << endl;
 	string fileName2 = "epirus-cli-shadow-" + version + "-SNAPSHOT";
-	string moveCmd2 = "mv " + fileName2 + " epirus-cli";
+	string moveCmd2 = "mv " + outputDir + fileName2 + " " + outputDir + "epirus-cli";
 	system(moveCmd2.c_str());
-	string crSymbLink = "ln -s ./epirus-cli/bin/epirus ./epirus";
+	//cout << "moveEpi " << moveCmd2 << endl;
+	string crSymbLink = "ln -s " + outputDir + "epirus-cli/bin/epirus " + outputDir + "epirus";
 	system(crSymbLink.c_str());
+	//cout << "moveEpi " << crSymbLink << endl;
 
 }
 
 void delEpiTmp(string version)
 {
+	string outputDir = getExeLocation();
 	string fileName = "epirus-cli-shadow-" + version + ".tar";
-	string rmCmd = "rm -rf ./" + fileName;
+	string rmCmd = "rm -rf " + outputDir + fileName;
 	system(rmCmd.c_str());
+	//cout << "delEpiTmp " << rmCmd << endl;
 }
 
 string getEthVer()
@@ -244,46 +272,71 @@ string getEthVer()
 
 void getEthSrc(string version)
 {
+	string outputDir = getExeLocation();
 	string fileName = "v" + version + ".zip";
-	string wgetCmd = "wget https://github.com/ethereum/go-ethereum/archive/" + fileName;
+	string wgetCmd = "wget -P " + outputDir + " https://github.com/ethereum/go-ethereum/archive/" + fileName;
 	system(wgetCmd.c_str());
+	//cout << "getEthSrc " << wgetCmd << endl;
 }
 
 void clearOldEth()
 {
+	string outputDir = getExeLocation();
 	string fileName[] = {"abidump", "abigen", "bootnode", "checkpoint-admin",
 	"clef", "devp2p", "ethkey", "evm", "faucet", "geth", "p2psim", "puppeth", "rlpdump"};
 	for (int i = 0; i < sizeof(fileName)/sizeof(*fileName) ; i++)
 	{
-		//cout << fileName[i] << "\n";
-		string rmCmd = "rm -rf ./" + fileName[i];
+		string rmCmd = "rm -rf " + outputDir + fileName[i];
 		system(rmCmd.c_str());
+		//cout << "clearOldEth " << rmCmd << endl;
 	}
 }
 
 void unTmp(string version)
 {
+	string outputDir = getExeLocation();
 	string fileName = "v" + version + ".zip";
-	string unzipCmd = "unzip " + fileName;
+	string unzipCmd = "unzip " + outputDir + fileName + " -d " + outputDir;
 	system(unzipCmd.c_str());
+	//cout << "unTmp " << unzipCmd << endl;
 }
 
 void compileEth(string version)
 {
-	string makeCompile = "make -C ./go-ethereum-" + version + " all";
+	string outputDir = getExeLocation();
+	string makeCompile = "make -C " + outputDir + "go-ethereum-" + version + " all";
 	system(makeCompile.c_str());
+	//cout << "compileEth " << makeCompile << endl;
 }
 
 void moveEth(string version)
 {
-	string moveExecutable = "mv ./go-ethereum-" + version + "/build/bin/* ./";
+	string outputDir = getExeLocation();
+	string moveExecutable = "mv " + outputDir + "go-ethereum-" + version + "/build/bin/* " + outputDir;
 	system(moveExecutable.c_str());
+	//cout << "moveEth " << moveExecutable << endl;
 }
 
 void delTmp(string version)
 {
-	string delCmd = "rm -rf ./go-ethereum-" + version;
+	string outputDir = getExeLocation();
+	string delCmd = "rm -rf " + outputDir + "go-ethereum-" + version;
 	system(delCmd.c_str());
-	string rmZip = "rm -rf ./v" + version + ".zip";
+	//cout << "delTmp " << delCmd << endl;
+	string rmZip = "rm -rf " + outputDir + "v" + version + ".zip";
 	system(rmZip.c_str());
+	//cout << "delTmp " << rmZip << endl;
+}
+
+string getExeLocation()
+{
+	int programNameSize = programName.length();
+	return (getExePath()).substr(0, (getExePath()).length() - programNameSize);
+}
+
+string getExePath()
+{
+	char result[PATH_MAX];
+	ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+	return std::string(result, (count > 0) ? count : 0);
 }
