@@ -32,6 +32,10 @@ string programName = "";
 int main(int argc, char **argv)
 {
 	string progNameLocal(argv[0]);
+	if (progNameLocal.find("./") != std::string::npos)
+	{
+		progNameLocal = progNameLocal.substr(2, progNameLocal.length() -2);
+	}
 	programName = progNameLocal;
 	string ethVersion = getEthVer();
 	if (ethVersion.empty())
